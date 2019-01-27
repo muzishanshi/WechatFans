@@ -3,9 +3,9 @@
  * Typecho微信公众号涨粉插件
  * @package WechatFans For Typecho
  * @author 二呆
- * @version 1.0.1
+ * @version 1.0.2
  * @link http://www.tongleer.com/
- * @date 2019-01-23
+ * @date 2019-01-27
  */
 date_default_timezone_set('Asia/Shanghai');
 
@@ -33,7 +33,7 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 		$div->html('
 			<script src="https://apps.bdimg.com/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 			<script>
-				$.post("'.$plug_url.'/WechatFans/ajax/update.php",{version:1},function(data){
+				$.post("'.$plug_url.'/WechatFans/ajax/update.php",{version:2},function(data){
 					$("#versionCode").html(data);
 				});
 			</script>
@@ -119,6 +119,9 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
     public static function parseExcerpt($obj,$length=140,$trim="..."){
 		$excerpt=trim($obj->excerpt);
 		if (preg_match_all('/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i', $excerpt, $hide_words)){
+			$excerpt = str_replace($hide_words[0], '', $excerpt);
+		}
+		if (preg_match_all('/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i', $excerpt, $hide_words)){
 			$excerpt = str_replace($hide_words[0], '', $excerpt);
 		}
 		$excerpt=Typecho_Common::subStr(strip_tags($excerpt), 0, $length, $trim);
