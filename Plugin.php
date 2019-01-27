@@ -120,8 +120,8 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 		$excerpt=trim($obj->excerpt);
 		if (preg_match_all('/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i', $excerpt, $hide_words)){
 			$excerpt = str_replace($hide_words[0], '', $excerpt);
-			$excerpt=Typecho_Common::subStr(strip_tags($excerpt), 0, $length, $trim);
 		}
+		$excerpt=Typecho_Common::subStr(strip_tags($excerpt), 0, $length, $trim);
 		return $excerpt;
 	}
 
