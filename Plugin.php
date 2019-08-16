@@ -3,9 +3,9 @@
  * Typecho微信公众号涨粉插件
  * @package WechatFans For Typecho
  * @author 二呆
- * @version 1.0.2
+ * @version 1.0.3
  * @link http://www.tongleer.com/
- * @date 2019-01-27
+ * @date 2019-08-16
  */
 date_default_timezone_set('Asia/Shanghai');
 
@@ -15,6 +15,8 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 		$db = Typecho_Db::get();
 		Typecho_Plugin::factory('admin/write-post.php')->bottom = array('WechatFans_Plugin', 'tleWechatFansToolbar');
 		Typecho_Plugin::factory('admin/write-page.php')->bottom = array('WechatFans_Plugin', 'tleWechatFansToolbar');
+		Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array('WechatFans_Plugin', 'contentEx');
+		Typecho_Plugin::factory('Widget_Abstract_Contents')->excerptEx = array('WechatFans_Plugin', 'excerptEx');
         return _t('插件已经激活，需先配置微博图床的信息！');
     }
 
@@ -33,7 +35,7 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 		$div->html('
 			<script src="https://apps.bdimg.com/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 			<script>
-				$.post("'.$plug_url.'/WechatFans/ajax/update.php",{version:2},function(data){
+				$.post("'.$plug_url.'/WechatFans/ajax/update.php",{version:3},function(data){
 					$("#versionCode").html(data);
 				});
 			</script>
@@ -43,14 +45,18 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 			<span><p>2、编写文章时点击编辑器VX按钮，插入以下代码：<br />&lt;!--wechatfans start--><br />&lt;!--wechatfans end--><br />代码，中间的文字即为隐藏内容；</p></span>
 			<span>
 				<p>
-					3、替换主题目录下post.php中输出内容的代码，如：<br />
-					&lt;?php $this->content; ?>替换成<font color="red">&lt;?php echo WechatFans_Plugin::parseContent($this); ?></font>
+					3、<font color="blue">【旧版本（需手动修改代码），可选】</font><br />
+					替换主题目录下post.php中输出内容的代码，如：<br />
+					&lt;?php $this->content; ?>替换成<font color="red">&lt;?php echo WechatFans_Plugin::parseContent($this); ?></font><br />
+					替换主题目录下archive.php或index.php中输出摘要或内容的代码，没有则不替换，如：<br />
+					&lt;?php $this->excerpt(140, "..."); ?>替换成<font color="red">&lt;?php echo WechatFans_Plugin::parseExcerpt($this,140, "..."); ?></font>
 				</p>
 			</span>
 			<span>
 				<p>
-					4、替换主题目录下archive.php或index.php中输出摘要或内容的代码，没有则不替换，如：<br />
-					&lt;?php $this->excerpt(140, "..."); ?>替换成<font color="red">&lt;?php echo WechatFans_Plugin::parseExcerpt($this,140, "..."); ?></font>
+					4、<font color="blue">【新版本（自动匹配标签规则）】</font><br />
+					替换主题目录下post.php中输出内容的代码，<font color="red">若已有自定义的输出内容代码，则可以不替换</font>，如：<br />
+					&lt;?php $this->content; ?>替换成&lt;?php echo $this->content; ?>
 				</p>
 			</span>
 		</small>');
@@ -117,11 +123,18 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      * @return void
      */
     public static function parseExcerpt($obj,$length=140,$trim="..."){
+		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
+		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
+		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
+		if($version<=1.1){
+			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
+			$WeMediaRule='/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i';
+		}
 		$excerpt=trim($obj->excerpt);
-		if (preg_match_all('/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i', $excerpt, $hide_words)){
+		if (preg_match_all($wechatfansRule, $excerpt, $hide_words)){
 			$excerpt = str_replace($hide_words[0], '', $excerpt);
 		}
-		if (preg_match_all('/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i', $excerpt, $hide_words)){
+		if (preg_match_all($WeMediaRule, $excerpt, $hide_words)){
 			$excerpt = str_replace($hide_words[0], '', $excerpt);
 		}
 		$excerpt=Typecho_Common::subStr(strip_tags($excerpt), 0, $length, $trim);
@@ -134,10 +147,15 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      * @return void
      */
     public static function parseContent($obj){
+		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
+		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
+		if($version<=1.1){
+			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
+		}
 		$option=self::getConfig();
 		$cookie_name = 'tongleer_wechat_fans';
 		$content=trim($obj->content);
-		if (preg_match_all('/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i', $content, $hide_words)){
+		if (preg_match_all($wechatfansRule, $content, $hide_words)){
 			$cv = md5($option->wechat_key.$cookie_name.'tongleer.com');
 			$vtips='';
 			if(isset($_POST['tongleer_verifycode'])){
@@ -159,5 +177,70 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 			}
 		}
 		return $content;
+	}
+	
+	/**
+     * 自动输出摘要
+     * @access public
+     * @return void
+     */
+    public static function excerptEx($html, $widget, $lastResult){
+		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
+		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
+		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
+		if($version<=1.1){
+			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
+			$WeMediaRule='/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i';
+		}
+		$html=trim($html);
+		if (preg_match_all($wechatfansRule, $html, $hide_words)){
+			$html = str_replace($hide_words[0], '', $html);
+		}
+		if (preg_match_all($WeMediaRule, $html, $hide_words)){
+			$html = str_replace($hide_words[0], '', $html);
+		}
+		$html=Typecho_Common::subStr(strip_tags($html), 0, 140, "...");
+		return $html;
+	}
+	
+	/**
+     * 自动输出内容
+     * @access public
+     * @return void
+     */
+    public static function contentEx($html, $widget, $lastResult){
+		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
+		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
+		if($version<=1.1){
+			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
+		}
+		$html = empty( $lastResult ) ? $html : $lastResult;
+		$option=self::getConfig();
+		$cookie_name = 'tongleer_wechat_fans';
+		$html=trim($html);
+		if (preg_match_all($wechatfansRule, $html, $hide_words)){
+			$cv = md5($option->wechat_key.$cookie_name.'tongleer.com');
+			$vtips='';
+			if(isset($_POST['tongleer_verifycode'])){
+				if($_POST['tongleer_verifycode']==$option->wechat_code){
+					setcookie($cookie_name, $cv ,time()+(int)$option->wechat_day*86400, "/");
+					$_COOKIE[$cookie_name] = $cv;
+				}else{
+					$vtips='<script>alert("验证码错误！请输入正确的验证码！");</script>';
+				}
+			}
+			$cookievalue = isset($_COOKIE[$cookie_name])?$_COOKIE[$cookie_name]:'';
+			
+			if($cookievalue==$cv){
+				$html = str_replace($hide_words[0], '<div style="border:1px dashed #F60; padding:10px; margin:10px 0; line-height:200%;  background-color:#FFF4FF; overflow:hidden; clear:both;">'.$hide_words[0][0].'</div>', $html);	
+				$html = str_replace("&lt;","<", $html);
+				$html = str_replace("&gt;",">", $html);
+			}else{
+				
+				$hide_notice = '<div class="huoduan_hide_box" style="border:1px dashed #F60; padding:10px; margin:10px 0; line-height:200%; color:#F00; background-color:#FFF4FF; overflow:hidden; clear:both;"><img class="wxpic" align="right" src="'.$option->wechat_qrimg.'" style="width:150px;height:150px;margin-left:20px;display:inline;border:none" width="150" height="150"  alt="'.$option->wechat_name.'" /><span style="font-size:18px;">此处内容已经被作者隐藏，请输入验证码查看内容</span><form method="post" style="margin:10px 0;"><span class="yzts" style="font-size:18px;float:left;">验证码：</span><input name="tong'.'le'.'er_verifycode" id="verifycode" type="text" value="" style="border:none;float:left;width:80px; height:32px; line-height:30px; padding:0 5px; border:1px solid #FF6600;-moz-border-radius: 0px;  -webkit-border-radius: 0px;  border-radius:0px;" /><input id="verifybtn" style="border:none;float:left;width:80px; height:32px; line-height:32px; padding:0 5px; background-color:#F60; text-align:center; border:none; cursor:pointer; color:#FFF;-moz-border-radius: 0px; font-size:14px;  -webkit-border-radius: 0px;  border-radius:0px;" name="" type="submit" value="提交查看" /></form><div style="clear:left;"></div><span style="color:#00BF30">请关注本站微信公众号，回复“<span style="color:blue">'.$option->wechat_keyword.'</span>”，获取验证码。在微信里搜索“<span style="color:blue">'.$option->wechat_name.'</span>”或者“<span style="color:blue">'.$option->wechat_account.'</span>”或者微信扫描右侧二维码都可以关注本站微信公众号。</span><div class="cl"></div></div>'.$vtips;
+				$html = str_replace($hide_words[0], $hide_notice, $html);
+			}
+		}
+		return $html;
 	}
 }
