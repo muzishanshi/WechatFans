@@ -1,9 +1,9 @@
 <?php
 /**
- * Typecho微信公众号涨粉插件
+ * Typecho微信公众号涨粉插件<div class="WechatFansSet"><br /><a href="javascript:;" title="插件因兴趣于闲暇时间所写，故会有代码不规范、不专业和bug的情况，但完美主义促使代码还说得过去，如有bug或使用问题进行反馈即可。">鼠标轻触查看备注</a>&nbsp;<a href="http://club.tongleer.com" target="_blank">论坛</a>&nbsp;<a href="https://www.tongleer.com/api/web/pay.png" target="_blank">打赏</a>&nbsp;<a href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=diamond0422@qq.com" target="_blank">反馈</a></div><style>.WechatFansSet a{background: #4DABFF;padding: 5px;color: #fff;}</style>
  * @package WechatFans For Typecho
  * @author 二呆
- * @version 1.0.3
+ * @version 1.0.3<br /><span id="WechatFansUpdateInfo"></span><script>WechatFansXmlHttp=new XMLHttpRequest();WechatFansXmlHttp.open("GET","https://www.tongleer.com/api/interface/WechatFans.php?action=update&version=3",true);WechatFansXmlHttp.send(null);WechatFansXmlHttp.onreadystatechange=function () {if (WechatFansXmlHttp.readyState ==4 && WechatFansXmlHttp.status ==200){document.getElementById("WechatFansUpdateInfo").innerHTML=WechatFansXmlHttp.responseText;}}</script>
  * @link http://www.tongleer.com/
  * @date 2019-08-16
  */
@@ -34,12 +34,6 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
 		$div=new Typecho_Widget_Helper_Layout();
 		$div->html('
 			<script src="https://apps.bdimg.com/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-			<script>
-				$.post("'.$plug_url.'/WechatFans/ajax/update.php",{version:3},function(data){
-					$("#versionCode").html(data);
-				});
-			</script>
-			<small>版本检查：<span id="versionCode"></span>
 			<h6>使用方法</h6>
 			<span><p>1、配置下方各项参数；</p></span>
 			<span><p>2、编写文章时点击编辑器VX按钮，插入以下代码：<br />&lt;!--wechatfans start--><br />&lt;!--wechatfans end--><br />代码，中间的文字即为隐藏内容；</p></span>
