@@ -118,10 +118,13 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      */
     public static function parseExcerpt($obj,$length=140,$trim="..."){
 		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
-		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
-		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
-		if($version<=1.1){
+		preg_match_all($wechatfansRule, $html, $hide_words);
+		if(!$hide_words[0]){
 			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
+		}
+		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
+		preg_match_all($WeMediaRule, $html, $hide_words);
+		if(!$hide_words[0]){
 			$WeMediaRule='/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i';
 		}
 		$excerpt=trim($obj->excerpt);
@@ -142,8 +145,8 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      */
     public static function parseContent($obj){
 		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
-		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
-		if($version<=1.1){
+		preg_match_all($wechatfansRule, $html, $hide_words);
+		if(!$hide_words[0]){
 			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
 		}
 		$option=self::getConfig();
@@ -180,10 +183,13 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      */
     public static function excerptEx($html, $widget, $lastResult){
 		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
-		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
-		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
-		if($version<=1.1){
+		preg_match_all($wechatfansRule, $html, $hide_words);
+		if(!$hide_words[0]){
 			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
+		}
+		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
+		preg_match_all($WeMediaRule, $html, $hide_words);
+		if(!$hide_words[0]){
 			$WeMediaRule='/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i';
 		}
 		$html=trim($html);
@@ -204,8 +210,8 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      */
     public static function contentEx($html, $widget, $lastResult){
 		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
-		$version = substr(Typecho_Widget::widget('Widget_Options')->Version,0,3);
-		if($version<=1.1){
+		preg_match_all($wechatfansRule, $html, $hide_words);
+		if(!$hide_words[0]){
 			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
 		}
 		$html = empty( $lastResult ) ? $html : $lastResult;
