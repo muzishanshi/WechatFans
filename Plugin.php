@@ -117,17 +117,18 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      * @return void
      */
     public static function parseExcerpt($obj,$length=140,$trim="..."){
+		$excerpt=trim($obj->excerpt);
 		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
-		preg_match_all($wechatfansRule, $html, $hide_words);
+		preg_match_all($wechatfansRule, $excerpt, $hide_words);
 		if(!$hide_words[0]){
 			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
 		}
 		$WeMediaRule='/<!--WeMedia start-->([\s\S]*?)<!--WeMedia end-->/i';
-		preg_match_all($WeMediaRule, $html, $hide_words);
+		preg_match_all($WeMediaRule, $excerpt, $hide_words);
 		if(!$hide_words[0]){
 			$WeMediaRule='/&lt;!--WeMedia start--&gt;([\s\S]*?)&lt;!--WeMedia end--&gt;/i';
 		}
-		$excerpt=trim($obj->excerpt);
+		
 		if (preg_match_all($wechatfansRule, $excerpt, $hide_words)){
 			$excerpt = str_replace($hide_words[0], '', $excerpt);
 		}
@@ -145,13 +146,14 @@ class WechatFans_Plugin implements Typecho_Plugin_Interface{
      */
     public static function parseContent($obj){
 		$wechatfansRule='/<!--wechatfans start-->([\s\S]*?)<!--wechatfans end-->/i';
-		preg_match_all($wechatfansRule, $html, $hide_words);
+		$content=trim($obj->content);
+		preg_match_all($wechatfansRule, $content, $hide_words);
 		if(!$hide_words[0]){
 			$wechatfansRule='/&lt;!--wechatfans start--&gt;([\s\S]*?)&lt;!--wechatfans end--&gt;/i';
 		}
 		$option=self::getConfig();
 		$cookie_name = 'tongleer_wechat_fans';
-		$content=trim($obj->content);
+		
 		if (preg_match_all($wechatfansRule, $content, $hide_words)){
 			$cv = md5($option->wechat_key.$cookie_name.'tongleer.com');
 			$vtips='';
